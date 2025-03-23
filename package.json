@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon app.js",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@auth/express": "^0.6.0",
