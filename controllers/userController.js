@@ -56,17 +56,24 @@ module.exports.Login = asyncHandler(async (req, res, next) => {
   if (!email || !password) {
     return res.status(400).json({ message: "All fields are required" });
   }
-  const user = await User.findOne({ email });
+
+  // Find user using Prisma
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
   if (!user) {
-    return res.status(404).json({ message: "email or user not found" });
+    return res.status(404).json({ message: "Email or user not found" });
   }
+
+  // Compare password
   const auth = await bcrypt.compare(password, user.password);
   if (!auth) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
-  // create token
-  const token = createSecretToken(user._id);
+  // Create token
+  const token = createSecretToken(user.id);
   res.cookie("token", token, {
     httpOnly: true,
     secure: true, // Always use secure in modern applications
@@ -75,14 +82,12 @@ module.exports.Login = asyncHandler(async (req, res, next) => {
     path: '/',
   });
 
-  // console.log("TOKEN: ", token)
-
   res.status(201).json({
     message: "User logged in successfully",
     success: true,
     token,
     user: {
-      id: user._id,
+      id: user.id,
       email: user.email,
     },
   });
