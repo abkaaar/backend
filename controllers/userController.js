@@ -1,7 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const { createSecretToken } = require("../utils/SecretToken");
 const bcrypt = require("bcryptjs");
-const sendEmail = require("../utils/sendEmail");
+const sendVerificationMail = require("../utils/sendVerificationCode");
 const crypto = require("crypto");
 const { asyncHandler } = require("../middlewares/error");
 const jwt = require('jsonwebtoken');
@@ -179,82 +179,82 @@ module.exports.getUser = asyncHandler(async (req, res) => {
 
 
 // @desc    Forgot Password Initialization
-exports.forgotPassword = asyncHandler(async (req, res, next) => {
-  // Send Email to email provided but first check if user exists
-  const { email } = req.body;
+// exports.forgotPassword = asyncHandler(async (req, res, next) => {
+//   // Send Email to email provided but first check if user exists
+//   const { email } = req.body;
 
-  const user = await User.findOne({ email });
+//   const user = await User.findOne({ email });
 
-  if (!user) {
-    // return next(new ErrorResponse("No email could not be sent", 404));
-    return res
-      .status(404)
-      .json({ message: "User not available, please register" });
-  }
+//   if (!user) {
+//     // return next(new ErrorResponse("No email could not be sent", 404));
+//     return res
+//       .status(404)
+//       .json({ message: "User not available, please register" });
+//   }
 
-  // Reset Token Gen and add to database hashed (private) version of token
-  const resetToken = user.getResetPasswordToken();
+//   // Reset Token Gen and add to database hashed (private) version of token
+//   const resetToken = user.getResetPasswordToken();
 
-  await user.save();
+//   await user.save();
 
-  // Create reset url to email to provided email
-  const resetUrl = `${process.env.FRONTEND_URL}/passwordreset/${resetToken}`;
+//   // Create reset url to email to provided email
+//   const resetUrl = `${process.env.FRONTEND_URL}/passwordreset/${resetToken}`;
 
-  // HTML Message
-  const message = `
-      <h1>You have requested a password reset</h1>
-      <p>Please use the following link to reset your password:</p>
-      <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
-    `;
+//   // HTML Message
+//   const message = `
+//       <h1>You have requested a password reset</h1>
+//       <p>Please use the following link to reset your password:</p>
+//       <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
+//     `;
 
-  try {
-    await sendEmail({
-      to: user.email,
-      subject: "Password Reset Request",
-      text: `To reset your password, use the following link: ${resetUrl}`,
-      html: message, // Pass the HTML message
-    });
+//   try {
+//     await sendEmail({
+//       to: user.email,
+//       subject: "Password Reset Request",
+//       text: `To reset your password, use the following link: ${resetUrl}`,
+//       html: message, // Pass the HTML message
+//     });
 
-    res.status(200).json({ success: true, data: "Email Sent" });
-  } catch (err) {
-    console.log(err);
+//     res.status(200).json({ success: true, data: "Email Sent" });
+//   } catch (err) {
+//     console.log(err);
 
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
+//     user.resetPasswordToken = undefined;
+//     user.resetPasswordExpire = undefined;
 
-    await user.save();
-    return next(new ErrorResponse("Email could not be sent", 500));
-  }
-});
+//     await user.save();
+//     return next(new ErrorResponse("Email could not be sent", 500));
+//   }
+// });
 
 // @desc    Reset User Password
-exports.resetPassword = asyncHandler(async (req, res, next) => {
-  // Compare token in URL params to hashed token
-  const resetPasswordToken = crypto
-    .createHash("sha256")
-    .update(req.params.resetToken)
-    .digest("hex");
+// exports.resetPassword = asyncHandler(async (req, res, next) => {
+//   // Compare token in URL params to hashed token
+//   const resetPasswordToken = crypto
+//     .createHash("sha256")
+//     .update(req.params.resetToken)
+//     .digest("hex");
 
-  const user = await User.findOne({
-    resetPasswordToken,
-    resetPasswordExpire: { $gt: Date.now() },
-  });
+//   const user = await User.findOne({
+//     resetPasswordToken,
+//     resetPasswordExpire: { $gt: Date.now() },
+//   });
 
-  if (!user) {
-    // return next(new ErrorResponse("Invalid Token", 400));
-    console.error("Error in resetPassword route:"); // Log detailed error
-    return res.status(400).json({ message: "Invalid Token" });
-  }
+//   if (!user) {
+//     // return next(new ErrorResponse("Invalid Token", 400));
+//     console.error("Error in resetPassword route:"); // Log detailed error
+//     return res.status(400).json({ message: "Invalid Token" });
+//   }
 
-  user.password = req.body.password;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpire = undefined;
+//   user.password = req.body.password;
+//   user.resetPasswordToken = undefined;
+//   user.resetPasswordExpire = undefined;
 
-  await user.save();
+//   await user.save();
 
-  res.status(201).json({
-    success: true,
-    data: "Password Updated Success",
-    token: user.getSignedJwtToken(),
-  });
-});
+//   res.status(201).json({
+//     success: true,
+//     data: "Password Updated Success",
+//     token: user.getSignedJwtToken(),
+//   });
+// });

@@ -11,8 +11,8 @@ router.post("/login", Login);
 router.put('/user/update', userVerification, user.updateUser);
 router.get('/user', userVerification, user.getUser);
 // router.put('/payment', userVerification, user.Payment);
-router.route("/forgotpassword").post(forgotPassword);
-router.route("/passwordreset/:resetToken").put(resetPassword);
+// router.route("/forgotpassword").post(forgotPassword);
+// router.route("/passwordreset/:resetToken").put(resetPassword);
 
 
 module.exports = router;
