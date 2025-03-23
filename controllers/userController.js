@@ -51,70 +51,102 @@ module.exports.Signup = asyncHandler(async (req, res, next) => {
   });
 });
 
-module.exports.Login = asyncHandler(async (req, res, next) => {
+// Login user with verification code
+module.exports.Login = async (req, res, next) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
-    return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({
+          success: false,
+          message: "Please provide an email and password"
+      });
   }
 
-  // Find user using Prisma
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+  try {
+      const user = await prisma.user.findUnique({ where: { email } });
 
-  if (!user) {
-    return res.status(404).json({ message: "Email or user not found" });
+      if (!user) {
+          return res.status(401).json({ success: false, message: "Invalid credentials, user not found" });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+
+      if (!isMatch) {
+          return res.status(401).json({ success: false, message: "Invalid credentials, password does not match" });
+      }
+
+      // Generate a 6-digit verification code
+      const verificationCode = crypto.randomInt(100000, 999999).toString();
+
+      // Store the code temporarily (in DB or cache, here using Prisma)
+      await prisma.user.update({
+          where: { email },
+          data: { verificationCode,
+             verificationCodeExpire: new Date(Date.now() + 10 * 60 * 1000) // Expires in 10 mins
+           }
+      });
+
+      // Send the verification code via email
+      await sendVerificationMail(email, verificationCode);
+
+      res.status(200).json({
+          success: true,
+          message: "Verification code sent to your email. Please verify to continue."
+      });
+  } catch (error) {
+      next(error);
   }
+};
 
-  // Compare password
-  const auth = await bcrypt.compare(password, user.password);
-  if (!auth) {
-    return res.status(401).json({ message: "Invalid credentials" });
+// Verify the code and log the user in
+exports.verifyCode = async (req, res, next) => {
+  const { email, verificationCode } = req.body;
+
+  try {
+      const user = await prisma.user.findUnique({ where: { email } });
+
+      if (!user || user.verificationCode !== verificationCode) {
+          return res.status(401).json({ success: false, message: "Invalid or expired verification code" });
+      }
+
+      // Clear the verification code after successful verification
+      await prisma.user.update({
+          where: { email },
+          data: { verificationCode: null }
+      });
+
+      const token = jwt.sign({ id: user.id }, process.env.TOKEN_KEY, { expiresIn: "1d" });
+
+      res.status(200).json({ success: true, token, user });
+  } catch (error) {
+      next(error);
   }
+};
 
-  // Create token
-  const token = createSecretToken(user.id);
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: true, // Always use secure in modern applications
-    sameSite: process.env.NODE_ENV === "production" ? 'None' : 'Lax',
-    maxAge: 24 * 60 * 60 * 1000,
-    path: '/',
-  });
-
-  res.status(201).json({
-    message: "User logged in successfully",
-    success: true,
-    token,
-    user: {
-      id: user.id,
-      email: user.email,
-    },
-  });
-});
 
 module.exports.updateUser = asyncHandler(async (req, res, next) => {
-  const userId = req.user._id; // Assuming you have user info from JWT middleware
+  const userId = req.user.id; // Assuming you have user info from JWT middleware
   const updatedData = req.body;
 
-  const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
-    new: true,
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: updatedData,
   });
 
   if (!updatedUser) {
     return res.status(404).json({ message: "User not found" });
   }
 
-  console.log("updated user",updatedUser)
+  console.log("updated user", updatedUser);
 
   // If the address was updated, reflect the change in the Space model
   if (updatedData.address) {
-    console.log('Updating spaces with new address:', updatedData.address);
+    console.log("Updating spaces with new address:", updatedData.address);
 
-    await Space.updateMany(
-      { address: updatedUser.address  }, // Find spaces linked to this user's address
-      { $set: { address: updatedData.address } } // Update with new address
-    );
+    await prisma.space.updateMany({
+      where: { address: updatedUser.address }, // Find spaces linked to this user's address
+      data: { address: updatedData.address }, // Update with new address
+    });
   }
 
   res
@@ -124,16 +156,26 @@ module.exports.updateUser = asyncHandler(async (req, res, next) => {
 
 // Controller function to fetch user info
 module.exports.getUser = asyncHandler(async (req, res) => {
-  const userId = req.user._id; // Assuming you extract the user ID from auth middleware
+  const userId = req.user.id; // Assuming you extract the user ID from auth middleware
 
-  const user = await User.findById(userId).select("-password"); // Exclude password
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      createdAt: true,
+      updatedAt: true,
+      // Exclude sensitive fields like password
+    },
+  });
+
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
 
   res.status(200).json({ success: true, user });
-
 });
+
 
 
 // @desc    Forgot Password Initialization
@@ -216,9 +258,3 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
     token: user.getSignedJwtToken(),
   });
 });
-
-// // reminder
-// const sendToken = (user, statusCode, res) => {
-//   const token = user.getSignedJwtToken();
-//   res.status(statusCode).json({ sucess: true, token });
-// };
