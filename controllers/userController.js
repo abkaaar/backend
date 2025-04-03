@@ -5,6 +5,7 @@ const sendVerificationMail = require("../utils/sendVerificationCode");
 const crypto = require("crypto");
 const { asyncHandler } = require("../middlewares/error");
 const jwt = require('jsonwebtoken');
+const { token } = require("morgan");
 
 const prisma = new PrismaClient();
 
@@ -87,7 +88,7 @@ module.exports.Login = async (req, res, next) => {
       });
 
       // Send the verification code via email
-      await sendVerificationMail(email, verificationCode);
+      await sendVerificationMail(email, token);
 
       res.status(200).json({
           success: true,
