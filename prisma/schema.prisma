@@ -27,7 +27,6 @@ model User {
   role                   Role      @default(SUPER_ADMIN)
   verificationCode       String?
   verificationCodeExpire DateTime?
-  phoneNumber            String?   @unique // Used for student login
   student                Student? // Relation for student details
   staff                  Staff? // Relation for staff details
   createdAt              DateTime  @default(now())
