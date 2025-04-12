@@ -4,6 +4,7 @@ const mailjet = require('node-mailjet').apiConnect(
 );
 
 const sendVerificationMail = async (email, token) => {
+  console.log('Sending verification email with token:', token);  // Add logging to ensure token is correct
   const request = mailjet.post('send', { version: 'v3.1' }).request({
     Messages: [
       {

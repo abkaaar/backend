@@ -88,7 +88,7 @@ module.exports.Login = async (req, res, next) => {
       });
 
       // Send the verification code via email
-      await sendVerificationMail(email, token);
+      await sendVerificationMail(email, verificationCode);
 
       res.status(200).json({
           success: true,
