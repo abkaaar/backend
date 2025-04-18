@@ -3,8 +3,6 @@ const router = express.Router();
 const auth = require('../middlewares/AuthMiddleware');
 const { 
     addDepartment, 
-    getDepartments, 
-    getDepartmentById, 
     updateDepartment, 
     deleteDepartment 
 } = require('../controllers/DepartmentController');
