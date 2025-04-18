@@ -2,11 +2,12 @@ const express = require("express");
 const router = express.Router();
 const {Signup, Login, forgotPassword, resetPassword } = require("../controllers/userController");
 const {userVerification, isHost} = require("../middlewares/AuthMiddleware")
-const user = require('../controllers/userController')
+const user = require('../controllers/userController');
  
 
 router.post("/register", Signup);
 router.post("/login", Login);
+router.post("/verify-otp", user.verifyCode);
 router.put('/user/update', userVerification, user.updateUser);
 router.get('/user', userVerification, user.getUser);
 // router.post('/dashboard', userVerification);
