@@ -1,5 +1,8 @@
 import { asyncHandler } from "../middlewares/error";
-import prisma from "../prismaClient"; // Assuming you have a Prisma client setup
+const { PrismaClient } = require("@prisma/client");
+
+
+const prisma = new PrismaClient();
 
 // Add Department
 export const addDepartment = asyncHandler(async (req, res) => {
