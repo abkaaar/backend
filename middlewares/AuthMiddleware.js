@@ -1,12 +1,15 @@
-const User = require("../models/User");
-require("dotenv").config();
-const jwt = require("jsonwebtoken");
-const ErrorResponse = require("../utils/errorResponse");
-const { asyncHandler } = require("./error");
+import { PrismaClient } from "@prisma/client";
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken"; // ✅ default import
+const { verify } = jwt;
+import ErrorResponse from "../utils/errorResponse.js";
+import { asyncHandler } from "./error.js";
 
-module.exports.userVerification = asyncHandler(async (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  // const token = authHeader && authHeader.split(" ")[1]; // Extract token from Bearer
+dotenv.config();
+
+const prisma = new PrismaClient();
+
+const userVerification = asyncHandler(async (req, res, next) => {
   const token = req.cookies.token || req.headers["authorization"]?.split(" ")[1];
 
   if (!token) {
@@ -18,8 +21,10 @@ module.exports.userVerification = asyncHandler(async (req, res, next) => {
     );
   }
 
-  const decoded = jwt.verify(token, process.env.TOKEN_KEY);
-  const user = await User.findById(decoded.id);
+  const decoded = verify(token, process.env.TOKEN_KEY);
+  const user = await prisma.user.findUnique({
+    where: { id: decoded.id },
+  });
 
   if (!user) {
     return next(new ErrorResponse("User not found", 404));
@@ -29,11 +34,4 @@ module.exports.userVerification = asyncHandler(async (req, res, next) => {
   next(); // Proceed to the next middleware/route
 });
 
-// Role Verification Middleware for 'Host'
-module.exports.isHost = (req, res, next) => {
-  console.log(req.user.host);
-  if (req.user.role !== "host") {
-    return next(new ErrorResponse("Access denied. Host role required.", 403));
-  }
-  next(); // Proceed to next middleware/route
-};
+export default userVerification;

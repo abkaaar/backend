@@ -1,11 +1,14 @@
-const mailjet = require('node-mailjet').apiConnect(
+import mailjet from 'node-mailjet';
+
+const mail = mailjet.apiConnect(
   process.env.MJ_APIKEY_PUBLIC,
   process.env.MJ_APIKEY_PRIVATE
 );
 
+
 const sendVerificationMail = async (email, token) => {
   console.log('Sending verification email with token:', token);  // Add logging to ensure token is correct
-  const request = mailjet.post('send', { version: 'v3.1' }).request({
+  const request = mail.post('send', { version: 'v3.1' }).request({
     Messages: [
       {
         From: {
@@ -33,4 +36,4 @@ const sendVerificationMail = async (email, token) => {
   }
 };
 
-module.exports = sendVerificationMail;
+export default sendVerificationMail;

@@ -1,28 +1,26 @@
-require("dotenv").config();
+import express, { urlencoded, json } from "express";
+import { static as expressStatic } from "express";
+import { join } from "path";
+import cookieParser from "cookie-parser";
+import logger from "morgan";
+import cors from "cors";
+import AuthRoute from "./routes/AuthRoute.js";
+import DepartmentRoute from "./routes/DepartmentRoute.js";
+import ErrorResponse from "./utils/errorResponse.js";
+import { errorHandler } from "./middlewares/error.js";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import compression from "compression";
 
-var express = require("express");
-var path = require("path");
-var cookieParser = require("cookie-parser");
-// const bodyParser = require('body-parser');
-var logger = require("morgan");
-
-const cors = require("cors");
-const DATABASE_URL = process.env.DATABASE_URL;
-const AuthRoute = require("./routes/AuthRoute");
-const SpaceRoute = require("./routes/spaceRoute");
-const BookRoute = require("./routes/BookingRoute");
-const ReviewRoute = require("./routes/ReviewRoute");
-const DepartmentRoute = require("./routes/DepartmentRoute")
-
-const ErrorResponse = require("./utils/errorResponse");
-const { errorHandler } = require("./middlewares/error");
-const rateLimit = require("express-rate-limit");
-const helmet = require("helmet");
-const compression = require("compression");
+// For __dirname in ESM
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const PORT = process.env.PORT || 3000;
 
-var app = express();
+const app = express();
 app.set("trust proxy", 1); // Trust the first proxy
 
 const allowedOrigins = ["http://localhost:3000", "http://localhost:5173", "http://localhost:3039"];
@@ -41,7 +39,7 @@ app.use(
   })
 );
 
-//performance Middleware
+// Performance middleware
 app.use(helmet());
 app.use(compression());
 
@@ -53,39 +51,33 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.use(logger("dev"));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(urlencoded({ extended: true }));
+app.use(json({ limit: "10mb" })); // Increase JSON payload size limit
 app.use(cookieParser());
-app.use(express.json({ limit: "10mb" })); // Increase JSON payload size limit
-app.use(express.urlencoded({ limit: "10mb", extended: true }));
+app.use(expressStatic(join(__dirname, "public")));
 
 // Optional logging middleware to verify headers
 app.use((req, res, next) => {
   res.on("finish", () => {
     console.log(`Request Origin: ${req.headers.origin}`);
-    console.log(
-      "Access-Control-Allow-Origin:",
-      res.get("Access-Control-Allow-Origin")
-    );
+    console.log("Access-Control-Allow-Origin:", res.get("Access-Control-Allow-Origin"));
   });
   next();
 });
 
-// routes connection
+// Routes connection
 app.use("/api/auth", AuthRoute);
 app.use("/api/department", DepartmentRoute);
-app.use("/", BookRoute);
-app.use("/", ReviewRoute);
 
-// catch 404 and forward to error handler
+// Catch 404 and forward to error handler
 app.use((req, res, next) => {
   next(new ErrorResponse("Resource not found", 404));
 });
 
-//global error handler
+// Global error handler
 app.use(errorHandler);
 
-// start server
+// Start server
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

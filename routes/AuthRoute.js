@@ -1,19 +1,18 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const {Signup, Login, forgotPassword, resetPassword } = require("../controllers/userController");
-const {userVerification, isHost} = require("../middlewares/AuthMiddleware")
-const user = require('../controllers/userController');
- 
+import { Signup, Login } from "../controllers/userController.js";
+import { verifyCode, updateUser, getUser } from "../controllers/userController.js";
+import userVerification from "../middlewares/AuthMiddleware.js";
+
 
 router.post("/register", Signup);
 router.post("/login", Login);
-router.post("/verify-otp", user.verifyCode);
-router.put('/user/update', userVerification, user.updateUser);
-router.get('/user', userVerification, user.getUser);
-// router.post('/dashboard', userVerification);
-// router.put('/payment', userVerification, user.Payment);
-// router.route("/forgotpassword").post(forgotPassword);
-// router.route("/passwordreset/:resetToken").put(resetPassword);
 
 
-module.exports = router;
+router.post("/verify-otp", verifyCode);
+router.put('/user/update', userVerification, updateUser);
+router.get('/user', userVerification, getUser);
+
+
+
+export default router;

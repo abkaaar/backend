@@ -1,17 +1,18 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const auth = require('../middlewares/AuthMiddleware');
-const { 
+import { 
     addDepartment, 
     updateDepartment, 
-    deleteDepartment 
-} = require('../controllers/DepartmentController');
+    deleteDepartment, 
+    getAllDepartments,
+    getDepartment
+}  from '../controllers/DepartmentController.js';
 
 // department routes
-router.post('/add', auth.userVerification, addDepartment);
-router.get('/', auth.userVerification, getDepartments);
-router.get('/:id', auth.userVerification, getDepartmentById);
-router.put('/:id', auth.userVerification, updateDepartment);
-router.delete('/:id', auth.userVerification, deleteDepartment);
+router.post('/add', addDepartment);
+router.get('/', getAllDepartments);
+router.get('/:id', getDepartment);
+router.put('/:id', updateDepartment);
+router.delete('/:id', deleteDepartment);
 
-module.exports = router;
+export default router;

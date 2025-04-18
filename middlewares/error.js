@@ -1,6 +1,6 @@
-const ErrorResponse = require("../utils/errorResponse");
+import ErrorResponse from "../utils/errorResponse.js";
 
-module.exports.errorHandler = (err, req, res, next) => {
+export function errorHandler(err, req, res, next) {
   let error = err;
 
   error.message = err.message;
@@ -21,11 +21,6 @@ module.exports.errorHandler = (err, req, res, next) => {
     error = new ErrorResponse(message, 404);
   }
 
-  // Handle JSON Web Token errors
-  // if (err.name === "JsonWebTokenError") {
-  //   const message = "Invalid token, please log in again";
-  //   error = new ErrorResponse(message, 401);
-  // }
   if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") {
     const message = err.name === "TokenExpiredError"
       ? "Token expired, please log in again"
@@ -44,9 +39,9 @@ module.exports.errorHandler = (err, req, res, next) => {
     error: error.message || "Server Error",
     ...(req.app.get("env") === "development" && { stack: error.stack }) // Stack trace only in development
   });
-};
+}
 
 // middleware asyncHandler
-module.exports.asyncHandler = fn => (req, res, next) => {
+export function asyncHandler(fn) { return (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
-};
+};   }

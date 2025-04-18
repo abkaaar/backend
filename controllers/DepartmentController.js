@@ -1,140 +1,192 @@
-import { asyncHandler } from "../middlewares/error";
-const { PrismaClient } = require("@prisma/client");
-
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 // Add Department
-export const addDepartment = asyncHandler(async (req, res) => {
-  const { name } = req.body;
-  const user_id = req.user._id;
+export const addDepartment = async (req, res) => {
+  try {
+    const { name } = req.body;
+    const user_id = req.user._id;
 
-  // Use Prisma to create a new department
-  const department = await prisma.department.create({
-    data: {
-      name,
-      user_id,
-      createdBy: req.user.id,
-    },
-  });
+    // Use Prisma to create a new department
+    const department = await prisma.department.create({
+      data: {
+        name,
+        user_id,
+        createdBy: req.user.id,
+      },
+    });
 
-  res.status(200).json({
-    success: true,
-    message: "Department added successfully",
-    data: department,
-  });
-});
+    res.status(200).json({
+      success: true,
+      message: "Department added successfully",
+      data: department,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
 
 // Get all departments
-export const getAllDepartments = asyncHandler(async (req, res) => {
-  const departments = await prisma.department.findMany({
-    where: {
-      user_id: req.user._id,
-    },
-  });
+export const getAllDepartments = async (req, res) => {
+  try {
+    const departments = await prisma.department.findMany({
+      where: {
+        user_id: req.user._id,
+      },
+    });
 
-  if (departments.length === 0) {
-    return res.status(404).json({
+    if (departments.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No departments found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Departments retrieved successfully",
+      data: departments,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
       success: false,
-      message: "No departments found",
+      message: "Server error",
+      error: error.message,
     });
   }
-
-  res.status(200).json({
-    success: true,
-    message: "Departments retrieved successfully",
-    data: departments,
-  });
-});
+};
 
 // Get a department
-export const getDepartment = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+export const getDepartment = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  // Use Prisma to find a department by ID
-  const department = await prisma.department.findUnique({
-    where: {
-      id,
-    },
-  });
+    // Use Prisma to find a department by ID
+    const department = await prisma.department.findUnique({
+      where: {
+        id,
+      },
+    });
 
-  if (!department) {
-    return res.status(404).json({
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        message: "Department not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Department retrieved successfully",
+      data: department,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
       success: false,
-      message: "Department not found",
+      message: "Server error",
+      error: error.message,
     });
   }
-
-  res.status(200).json({
-    success: true,
-    message: "Department retrieved successfully",
-    data: department,
-  });
-});
+};
 
 // Update a department
-export const updateDepartment = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { name } = req.body;
+export const updateDepartment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
 
-  // Use Prisma to update a department
-  const department = await prisma.department.update({
-    where: {
-      id,
-    },
-    data: {
-      name,
-    },
-  });
-
-  res.status(200).json({
-    success: true,
-    message: "Department updated successfully",
-    data: department,
-  });
-});
-
-// Delete a department
-export const deleteDepartment = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
-  // Use Prisma to delete a department
-  await prisma.department.delete({
-    where: {
-      id,
-    },
-  });
-
-  res.status(200).json({
-    success: true,
-    message: "Department deleted successfully",
-  });
-});
-
-// Search departments 
-export const searchDepartments = asyncHandler(async (req, res) => {
-  const { name } = req.query;
-
-  // Use Prisma to search for departments by name
-  const departments = await prisma.department.findMany({
-    where: {
-      name: {
-        contains: name,
-        mode: "insensitive",
+    // Use Prisma to update a department
+    const department = await prisma.department.update({
+      where: {
+        id,
       },
-    },
-  });
+      data: {
+        name,
+      },
+    });
 
-  if (departments.length === 0) {
-    return res.status(404).json({
+    res.status(200).json({
+      success: true,
+      message: "Department updated successfully",
+      data: department,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
       success: false,
-      message: "No departments found",
+      message: "Server error",
+      error: error.message,
     });
   }
+};
 
-  res.status(200).json({
-    success: true,
-    message: "Departments retrieved successfully",
-    data: departments,
-  });
-});
+// Delete a department
+export const deleteDepartment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Use Prisma to delete a department
+    await prisma.department.delete({
+      where: {
+        id,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Department deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+// Search departments
+export const searchDepartments = async (req, res) => {
+  try {
+    const { name } = req.query;
+
+    // Use Prisma to search for departments by name
+    const departments = await prisma.department.findMany({
+      where: {
+        name: {
+          contains: name,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    if (departments.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No departments found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Departments retrieved successfully",
+      data: departments,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
