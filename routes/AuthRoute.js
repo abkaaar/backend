@@ -7,8 +7,6 @@ import userVerification from "../middlewares/AuthMiddleware.js";
 
 router.post("/register", Signup);
 router.post("/login", Login);
-
-
 router.post("/verify-otp", verifyCode);
 router.put('/user/update', userVerification, updateUser);
 router.get('/user', userVerification, getUser);

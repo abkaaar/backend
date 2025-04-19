@@ -11,7 +11,7 @@ import userVerification from '../middlewares/AuthMiddleware.js';
 
 // department routes
 router.post('/add', userVerification, addDepartment);
-router.get('/', getAllDepartments);
+router.get('/departments', getAllDepartments);
 router.get('/:id', getDepartment);
 router.put('/:id', updateDepartment);
 router.delete('/:id', deleteDepartment);
