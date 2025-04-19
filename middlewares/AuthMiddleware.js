@@ -1,37 +1,47 @@
-import { PrismaClient } from "@prisma/client";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken"; // ✅ default import
-const { verify } = jwt;
-import ErrorResponse from "../utils/errorResponse.js";
-import { asyncHandler } from "./error.js";
-
-dotenv.config();
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const userVerification = asyncHandler(async (req, res, next) => {
-  const token = req.cookies.token || req.headers["authorization"]?.split(" ")[1];
+dotenv.config();
+
+const userVerification = async (req, res, next) => {
+  const token =
+    req.cookies.token || req.header("Authorization")?.replace("Bearer ", "");
+
+
 
   if (!token) {
-    return next(
-      new ErrorResponse(
-        "Authentication token is missing or not authorized",
-        401
-      )
-    );
+    return res
+      .status(401)
+      .json({ success: false, message: "No token, authorization denied" });
   }
 
-  const decoded = verify(token, process.env.TOKEN_KEY);
-  const user = await prisma.user.findUnique({
-    where: { id: decoded.id },
-  });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
 
-  if (!user) {
-    return next(new ErrorResponse("User not found", 404));
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    // Check if the user exists in the database
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
+    }
+    req.user = user; // Add user ID to req.user object
+
+    next();
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(401)
+      .json({ success: false, message: "Token is not valid" });
   }
-
-  req.user = user;
-  next(); // Proceed to the next middleware/route
-});
+};
 
 export default userVerification;

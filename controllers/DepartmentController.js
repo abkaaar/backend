@@ -2,18 +2,20 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Add Department
 export const addDepartment = async (req, res) => {
   try {
+    const user = req.user; // Get user from request object
+    // Check if user is authenticated
+    if (!user) {
+      return res.status(400).json({ success: false, message: "User not authenticated" });
+    }
+    
     const { name } = req.body;
-    const user_id = req.user._id;
+    // const user_id = req.user;
 
-    // Use Prisma to create a new department
     const department = await prisma.department.create({
       data: {
         name,
-        user_id,
-        createdBy: req.user.id,
       },
     });
 
@@ -31,6 +33,7 @@ export const addDepartment = async (req, res) => {
     });
   }
 };
+
 
 // Get all departments
 export const getAllDepartments = async (req, res) => {

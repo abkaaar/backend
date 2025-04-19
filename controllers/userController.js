@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config(); 
+
 import { PrismaClient } from "@prisma/client";
 import { createSecretToken } from "../utils/SecretToken.js";
 import pkg from 'bcryptjs';
@@ -120,7 +123,7 @@ export const verifyCode = async (req, res, next) => {
       data: { verificationCode: null },
     });
 
-    const token = sign({ id: user.id }, process.env.TOKEN_KEY, { expiresIn: "1d" });
+    const token = sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
     res.status(200).json({ success: true, token, user });
   } catch (error) {
@@ -143,11 +146,10 @@ export const updateUser = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    console.log("Updated user:", updatedUser);
 
     // If the address was updated, reflect the change in the Space model
     if (updatedData.address) {
-      console.log("Updating spaces with new address:", updatedData.address);
+      g("Updating spaces with new address:", updatedData.address);
 
       await prisma.space.updateMany({
         where: { address: updatedUser.address }, // Find spaces linked to this user's address
