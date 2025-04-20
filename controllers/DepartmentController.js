@@ -38,11 +38,7 @@ export const addDepartment = async (req, res) => {
 // Get all departments
 export const getAllDepartments = async (req, res) => {
   try {
-    const departments = await prisma.department.findMany({
-      where: {
-        user_id: req.user._id,
-      },
-    });
+    const departments = await prisma.department.findMany();
 
     if (departments.length === 0) {
       return res.status(404).json({
