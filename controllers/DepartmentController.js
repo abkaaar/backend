@@ -101,7 +101,7 @@ export const getDepartment = async (req, res) => {
 export const updateDepartment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name , description } = req.body;
 
     // Use Prisma to update a department
     const department = await prisma.department.update({
@@ -110,6 +110,7 @@ export const updateDepartment = async (req, res) => {
       },
       data: {
         name,
+        description
       },
     });
 
