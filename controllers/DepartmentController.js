@@ -10,12 +10,13 @@ export const addDepartment = async (req, res) => {
       return res.status(400).json({ success: false, message: "User not authenticated" });
     }
     
-    const { name } = req.body;
+    const { name , description } = req.body;
     // const user_id = req.user;
 
     const department = await prisma.department.create({
       data: {
         name,
+        description
       },
     });
 
