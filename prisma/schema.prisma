@@ -35,11 +35,12 @@ model User {
 model Student {
   id           String     @id @default(uuid())
   userId       String     @unique
+  name          String
   user         User       @relation(fields: [userId], references: [id])
   matricNo     String     @unique // Used for login
   phoneNumber  String     @unique // Used for login
-  department   Department @relation(fields: [departmentId], references: [id])
-  departmentId String
+  department   Department @relation(fields: [departmentName], references: [name])
+  departmentName String
   clearance    Clearance?
   payments     Payment[]
 }
@@ -49,8 +50,8 @@ model Staff {
   userId       String      @unique
   user         User        @relation(fields: [userId], references: [id])
   position     String
-  department   Department  @relation(fields: [departmentId], references: [id])
-  departmentId String
+  department   Department  @relation(fields: [departmentName], references: [name])
+  departmentName String
   approvals    Approval[]
 }
 

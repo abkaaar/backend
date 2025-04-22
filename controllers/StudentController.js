@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 export const addStudent = async (req, res) => {
-  const { email, phoneNumber, matricNo, departmentId } = req.body;
+  const { email, phoneNumber, matricNo, departmentName, name } = req.body;
 
   try {
     // Check if user or student already exists
@@ -34,8 +34,9 @@ export const addStudent = async (req, res) => {
       data: {
         userId: user.id,
         matricNo,
+        name,
         phoneNumber,
-        departmentId,
+        departmentName,
       },
       include: {
         user: true,
@@ -48,6 +49,7 @@ export const addStudent = async (req, res) => {
       message: "Student added successfully",
       data: {
         id: student.id,
+        name: student.name,
         matricNo: student.matricNo,
         department: student.department.name,
         email: student.user.email,
