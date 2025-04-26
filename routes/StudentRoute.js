@@ -9,7 +9,7 @@ import {
 }  from '../controllers/StudentController.js';
 import userVerification from '../middlewares/AuthMiddleware.js';
 
-// department routes
+// student routes
 router.post('/add', userVerification, addStudent);
 router.get('/:id', getStudent);
 router.get('/students', getStudents);

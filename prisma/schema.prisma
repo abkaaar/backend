@@ -22,7 +22,7 @@ enum Role {
 
 model User {
   id                     String    @id @default(uuid())
-  email                  String?   @unique  // Super-admin and staff use email
+  email                  String?   @unique // Super-admin and staff use email
   password               String?
   role                   Role      @default(SUPER_ADMIN)
   verificationCode       String?
@@ -33,37 +33,38 @@ model User {
 }
 
 model Student {
-  id           String     @id @default(uuid())
-  userId       String     @unique
-  name          String
-  user         User       @relation(fields: [userId], references: [id])
-  matricNo     String     @unique // Used for login
-  phoneNumber  String     @unique // Used for login
-  department   Department @relation(fields: [departmentName], references: [name])
+  id             String     @id @default(uuid())
+  userId         String     @unique
+  name           String
+  user           User       @relation(fields: [userId], references: [id])
+  matricNo       String     @unique // Used for login
+  phoneNumber    String     @unique // Used for login
+  department     Department @relation(fields: [departmentName], references: [name])
   departmentName String
-  clearance    Clearance?
-  payments     Payment[]
+  clearance      Clearance?
+  payments       Payment[]
 }
 
 model Staff {
-  id           String      @id @default(uuid())
-  userId       String      @unique
-  user         User        @relation(fields: [userId], references: [id])
-  position     String
-  department   Department  @relation(fields: [departmentName], references: [name])
+  id             String     @id @default(uuid())
+  userId         String     @unique
+  name           String
+  user           User       @relation(fields: [userId], references: [id])
+  position       String?
+  department     Department @relation(fields: [departmentName], references: [name])
   departmentName String
-  approvals    Approval[]
+  approvals      Approval[]
 }
 
 model Department {
-  id        String     @id @default(uuid())
-  name      String     @unique
-  students  Student[]
-  staff     Staff[]
-  approvals Approval[]
+  id          String     @id @default(uuid())
+  name        String     @unique
+  students    Student[]
+  staffs      Staff[]
+  approvals   Approval[]
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 enum ClearanceStatus {
@@ -116,10 +117,3 @@ model Payment {
   status      PaymentStatus @default(PENDING)
   createdAt   DateTime      @default(now())
 }
-
-
-
-
-
-
-

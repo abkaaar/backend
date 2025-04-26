@@ -7,6 +7,7 @@ import cors from "cors";
 import AuthRoute from "./routes/AuthRoute.js";
 import DepartmentRoute from "./routes/DepartmentRoute.js";
 import StudentRoute from "./routes/StudentRoute.js";
+import StaffRoute from "./routes/StaffRoute.js";
 import ErrorResponse from "./utils/errorResponse.js";
 import { errorHandler } from "./middlewares/error.js";
 import rateLimit from "express-rate-limit";
@@ -70,6 +71,7 @@ app.use((req, res, next) => {
 app.use("/api/auth", AuthRoute);
 app.use("/api/department", DepartmentRoute);
 app.use("/api/student", StudentRoute); 
+app.use("/api/staff", StaffRoute); 
 
 // Catch 404 and forward to error handler
 app.use((req, res, next) => {
