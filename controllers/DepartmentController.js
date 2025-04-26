@@ -100,6 +100,13 @@ export const getDepartment = async (req, res) => {
 // Update a department
 export const updateDepartment = async (req, res) => {
   try {
+
+    const user = req.user; // Get user from request object
+    // Check if user is authenticated
+    if (!user) {
+      return res.status(400).json({ success: false, message: "User not authenticated" });
+    }
+
     const { id } = req.params;
     const { name , description } = req.body;
 
@@ -132,6 +139,12 @@ export const updateDepartment = async (req, res) => {
 // Delete a department
 export const deleteDepartment = async (req, res) => {
   try {
+    const user = req.user; // Get user from request object
+    // Check if user is authenticated
+    if (!user) {
+      return res.status(400).json({ success: false, message: "User not authenticated" });
+    }
+
     const { id } = req.params;
 
     // Use Prisma to delete a department

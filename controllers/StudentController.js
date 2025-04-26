@@ -4,12 +4,22 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 export const addStudent = async (req, res) => {
-  const { email, phoneNumber, matricNo, departmentName, name } = req.body;
-
   try {
+    const adminUser = req.user; // Get user from request object
+    // Check if user is authenticated
+    if (!adminUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not authenticated" });
+    }
+
+    const { email, phoneNumber, matricNo, departmentName, name } = req.body;
+
     // Check if user or student already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    const existingStudent = await prisma.student.findUnique({ where: { matricNo } });
+    const existingStudent = await prisma.student.findUnique({
+      where: { matricNo },
+    });
 
     if (existingUser || existingStudent) {
       return res.status(400).json({
@@ -41,19 +51,20 @@ export const addStudent = async (req, res) => {
       include: {
         user: true,
         department: true,
-      }
+      },
     });
 
     res.status(201).json({
       success: true,
       message: "Student added successfully",
-      data: {
-        id: student.id,
-        name: student.name,
-        matricNo: student.matricNo,
-        department: student.department.name,
-        email: student.user.email,
-      },
+      data: student,
+      // data: {
+      //   id: student.id,
+      //   name: student.name,
+      //   matricNo: student.matricNo,
+      //   department: student.department.name,
+      //   email: student.user.email,
+      // },
     });
   } catch (error) {
     console.error("Error adding student:", error);
@@ -93,7 +104,9 @@ export const getStudent = async (req, res) => {
     });
 
     if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
     }
 
     res.status(200).json({
@@ -107,16 +120,27 @@ export const getStudent = async (req, res) => {
 };
 
 export const updateStudent = async (req, res) => {
-  const { id } = req.params;
-  const { name, email, phoneNumber, matricNo, departmentId } = req.body;
-
   try {
+    const user = req.user; // Get user from request object
+    // Check if user is authenticated
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not authenticated" });
+    }
+
+    const { id } = req.params;
+
+    const { name, email, phoneNumber, matricNo, departmentId } = req.body;
+
     const student = await prisma.student.findUnique({
       where: { id: parseInt(id) },
     });
 
     if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
     }
 
     // Update user and student details
@@ -142,20 +166,36 @@ export const updateStudent = async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating student:", error);
-    res.status(500).json({ success: false, message: "Server error", error });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Failed to update student. Please try again later",
+        error,
+      });
   }
 };
 
 export const deleteStudent = async (req, res) => {
-  const { id } = req.params;
-
   try {
+    const user = req.user; // Get user from request object
+    // Check if user is authenticated
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not authenticated" });
+    }
+
+    const { id } = req.params;
+
     const student = await prisma.student.findUnique({
       where: { id: parseInt(id) },
     });
 
     if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
     }
 
     // Delete student and user
@@ -176,4 +216,3 @@ export const deleteStudent = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error", error });
   }
 };
-

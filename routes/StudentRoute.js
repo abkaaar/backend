@@ -7,9 +7,10 @@ import {
     getStudents,
     updateStudent
 }  from '../controllers/StudentController.js';
+import userVerification from '../middlewares/AuthMiddleware.js';
 
 // department routes
-router.post('/add', addStudent);
+router.post('/add', userVerification, addStudent);
 router.get('/:id', getStudent);
 router.get('/students', getStudents);
 router.put('/:id', updateStudent);
