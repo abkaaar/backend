@@ -72,11 +72,23 @@ export const Login = async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({ where: { email } });
 
+    console.log("User found:", user);
+
     if (!user) {
       return res.status(401).json({ success: false, message: "Invalid credentials, user not found" });
     }
 
-    const isMatch = await compare(password, user.password);
+    let isMatch = false;
+
+    if (user.role === "STUDENT") {
+      // For students, direct comparison
+      isMatch = password === user.password;
+    } else {
+      // For staff and super-admins, hashed comparison
+      isMatch = await compare(password, user.password);
+    }
+
+    // const isMatch = await compare(password, user.password);
 
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid credentials, password does not match" });

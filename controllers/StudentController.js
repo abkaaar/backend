@@ -29,7 +29,8 @@ export const addStudent = async (req, res) => {
     }
 
     // Create user with a random password (or hashed matric number)
-    const hashedPassword = await bcrypt.hash(matricNo, 10);
+    // const hashedPassword = await bcrypt.hash(matricNo, 10);
+    const hashedPassword = "11223344"; // Use a default password for now
 
     const user = await prisma.user.create({
       data: {
