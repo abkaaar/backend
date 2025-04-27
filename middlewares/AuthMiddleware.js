@@ -34,6 +34,7 @@ const userVerification = async (req, res, next) => {
         .json({ success: false, message: "User not found" });
     }
     req.user = user; // Add user ID to req.user object
+    
 
     next();
   } catch (err) {

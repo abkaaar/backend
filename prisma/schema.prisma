@@ -90,8 +90,8 @@ enum ApprovalStatus {
 
 model Approval {
   id           String         @id @default(uuid())
-  staff        Staff          @relation(fields: [staffId], references: [id])
-  staffId      String
+  staff        Staff?          @relation(fields: [staffId], references: [id])
+  staffId      String?
   clearance    Clearance      @relation(fields: [clearanceId], references: [id])
   clearanceId  String
   department   Department     @relation(fields: [departmentId], references: [id])
@@ -99,6 +99,7 @@ model Approval {
   status       ApprovalStatus @default(PENDING)
   comment      String?
   createdAt    DateTime       @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 enum PaymentStatus {

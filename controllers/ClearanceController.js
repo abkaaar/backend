@@ -2,6 +2,8 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+
+  
 // Create Clearance
 export const createClearance = async (req, res, next) => {
     try {
@@ -9,9 +11,9 @@ export const createClearance = async (req, res, next) => {
         return res.status(401).json({ success: false, message: "Unauthorized. User not found." });
       }
   
-      const studentId = req.user.id; // Assuming req.user contains student details
+      const studentId = req.user.id;
   
-      // Make sure student exists
+      // Check if the student exists
       const student = await prisma.student.findUnique({
         where: { userId: studentId },
       });
@@ -20,16 +22,40 @@ export const createClearance = async (req, res, next) => {
         return res.status(404).json({ success: false, message: "Student not found" });
       }
   
-      // Create clearance for the student
+      // Check if clearance already exists
+      const existingClearance = await prisma.clearance.findFirst({
+        where: { studentId: student.id },
+      });
+  
+      if (existingClearance) {
+        return res.status(400).json({ success: false, message: "Clearance request already exists" });
+      }
+  
+      // Create the clearance
       const clearance = await prisma.clearance.create({
         data: {
           studentId: student.id,
         },
       });
   
+      // Find all departments
+      const departments = await prisma.department.findMany();
+  
+      // Create approvals for each department
+      const approvals = departments.map((department) => ({
+        clearanceId: clearance.id,
+        departmentId: department.id,
+        status: "PENDING",
+        staffId: null, // No staff yet assigned
+      }));
+  
+      await prisma.approval.createMany({
+        data: approvals,
+      });
+  
       res.status(201).json({
         success: true,
-        message: "Clearance request created successfully",
+        message: "Clearance request created successfully, approvals pending.",
         data: clearance,
       });
     } catch (error) {
