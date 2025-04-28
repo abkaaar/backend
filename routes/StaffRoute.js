@@ -6,8 +6,8 @@ import { addStaff, deleteStaff, getStaff, getStaffs, updateStaff } from '../cont
 
 // staff routes
 router.post('/add', userVerification, addStaff);
-router.get('/:id', getStaff);
 router.get('/staffs', getStaffs);
+router.get('/:id', getStaff);
 router.put('/:id', updateStaff);
 router.delete('/:id', deleteStaff);
 

@@ -11,10 +11,10 @@ import userVerification from '../middlewares/AuthMiddleware.js';
 
 // student routes
 router.post('/add', userVerification, addStudent);
-router.get('/:id', getStudent);
 router.get('/students', getStudents);
-router.put('/:id', updateStudent);
-router.delete('/:id', deleteStudent);
+router.get('/:id', getStudent);
+router.put('/:id', userVerification, updateStudent);
+router.delete('/:id', userVerification, deleteStudent);
 
 
 export default router;
