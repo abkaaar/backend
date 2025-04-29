@@ -115,6 +115,8 @@ model Payment {
   clearance   Clearance     @relation(fields: [clearanceId], references: [id])
   clearanceId String
   amount      Float
+  reference   String     @unique // Unique reference for the payment
   status      PaymentStatus @default(PENDING)
   createdAt   DateTime      @default(now())
+  updatedAt DateTime @updatedAt
 }
