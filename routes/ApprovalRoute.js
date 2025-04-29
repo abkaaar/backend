@@ -6,6 +6,6 @@ import { getApprovals, updateApprovalStatus } from "../controllers/ApprovalContr
 
 
 router.get("/all", userVerification, getApprovals); // Get all approvals 
-router.patch("/:id", userVerification, updateApprovalStatus ); // Approve or reject a clearance
+router.patch("/:approvalId", userVerification, updateApprovalStatus ); // Approve or reject a clearance
 
 export default router;

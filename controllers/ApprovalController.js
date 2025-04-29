@@ -67,6 +67,7 @@ export const getApprovals = async (req, res, next) => {
 };
 
 // Update (Approve or Reject) an Approval
+
 export const updateApprovalStatus = async (req, res, next) => {
   try {
     const currentUser = req.user;
@@ -77,19 +78,14 @@ export const updateApprovalStatus = async (req, res, next) => {
       return res.status(401).json({ success: false, message: "Unauthorized." });
     }
 
-    if (currentUser.role !== "STAFF") {
-      return res.status(403).json({ success: false, message: "Only staff can approve or reject." });
+    // Check if the current user is a STAFF or SUPER_ADMIN
+    if (currentUser.role !== "STAFF" && currentUser.role !== "SUPER_ADMIN") {
+      return res.status(403).json({ success: false, message: "Only staff or admin can approve or reject." });
     }
 
-    const staff = await prisma.staff.findUnique({
-      where: { userId: currentUser.id },
-    });
+    console.log("Approval ID:", approvalId); // This should log the ID passed in the URL
 
-    if (!staff) {
-      return res.status(404).json({ success: false, message: "Staff not found." });
-    }
-
-    // Find the approval
+    // Find the approval by ID
     const approval = await prisma.approval.findUnique({
       where: { id: approvalId },
     });
@@ -98,24 +94,44 @@ export const updateApprovalStatus = async (req, res, next) => {
       return res.status(404).json({ success: false, message: "Approval not found." });
     }
 
-    // Check if the approval belongs to staff's department
-    if (approval.departmentId !== staff.departmentId) {
-      return res.status(403).json({ success: false, message: "You can only approve/reject your department's requests." });
+    let staff = null;
+
+    // If the user is STAFF, check department matching
+    if (currentUser.role === "STAFF") {
+      staff = await prisma.staff.findUnique({
+        where: { userId: currentUser.id },
+      });
+
+      if (!staff) {
+        return res.status(404).json({ success: false, message: "Staff not found." });
+      }
+
+      // Ensure the approval belongs to the staff's department
+      if (approval.departmentId !== staff.departmentId) {
+        return res.status(403).json({ success: false, message: "You can only approve/reject your department's requests." });
+      }
     }
 
-    // Update the approval
+    // Update the approval status
     const updatedApproval = await prisma.approval.update({
       where: { id: approvalId },
       data: {
-        status: status,   // 'APPROVED' or 'REJECTED'
-        comment: comment || null,
-        staffId: staff.id,
+        status, // 'APPROVED' or 'REJECTED'
+        comment: comment || null, // If no comment, set it to null
+        staffId: staff ? staff.id : null, // Only set staffId if staff is not null
+        
       },
     });
 
-    return res.status(200).json({ success: true, message: `Approval ${status.toLowerCase()} successfully.`, data: updatedApproval });
+    // Return success message with updated approval data
+    return res.status(200).json({
+      success: true,
+      message: `Approval ${status.toLowerCase()} successfully.`,
+      data: updatedApproval,
+    });
   } catch (error) {
     console.error("Error updating approval:", error);
     next(error);
   }
 };
+
