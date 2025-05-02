@@ -122,3 +122,32 @@ export const getClearance = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error", error });
   }
 };
+
+// Get all clearances for a specific student
+export const getClearancesByStudent = async (req, res) => {
+  const { studentId } = req.params;
+
+  try {
+    const clearances = await prisma.clearance.findMany({
+      where: { studentId: studentId },
+      include: {
+        approvals: {
+          include: {
+            staff: true,
+            department: true,
+          },
+        },
+        payments: true,
+      },
+    });
+
+    if (clearances.length === 0) {
+      return res.status(404).json({ success: false, message: "No clearances found for this student" });
+    }
+
+    res.status(200).json({ success: true, data: clearances });
+  } catch (error) {
+    console.error("Error fetching clearances:", error);
+    res.status(500).json({ success: false, message: "Server error", error });
+  }
+};

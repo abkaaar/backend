@@ -3,7 +3,77 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-export const addStudent = async (req, res) => {
+// export const addStudent = async (req, res) => {
+//   try {
+//     const adminUser = req.user; // Get user from request object
+//     // Check if user is authenticated
+//     if (!adminUser) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "User not authenticated" });
+//     }
+
+//     const { email, phoneNumber, matricNo, departmentName, name } = req.body;
+
+//     // Check if user or student already exists
+//     const existingUser = await prisma.user.findUnique({ where: { email } });
+//     const existingStudent = await prisma.student.findUnique({
+//       where: { matricNo },
+//     });
+
+//     if (existingUser || existingStudent) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Student with this email or matric number already exists",
+//       });
+//     }
+
+//     // Create user with a random password (or hashed matric number)
+//     // const hashedPassword = await bcrypt.hash(matricNo, 10);
+//     const hashedPassword = "11223344"; // Use a default password for now
+
+//     const user = await prisma.user.create({
+//       data: {
+//         email,
+//         password: hashedPassword,
+//         role: "STUDENT",
+//       },
+//     });
+
+//     // Create student and link to user
+//     const student = await prisma.student.create({
+//       data: {
+//         userId: user.id,
+//         matricNo,
+//         name,
+//         phoneNumber,
+//         departmentName,
+//       },
+//       include: {
+//         user: true,
+//         department: true,
+//       },
+//     });
+
+//     res.status(201).json({
+//       success: true,
+//       message: "Student added successfully",
+//       data: student,
+//       // data: {
+//       //   id: student.id,
+//       //   name: student.name,
+//       //   matricNo: student.matricNo,
+//       //   department: student.department.name,
+//       //   email: student.user.email,
+//       // },
+//     });
+//   } catch (error) {
+//     console.error("Error adding student:", error);
+//     res.status(500).json({ success: false, message: "Server error", error });
+//   }
+// };
+
+export const addStudents = async (req, res) => {
   try {
     const adminUser = req.user; // Get user from request object
     // Check if user is authenticated
@@ -13,62 +83,49 @@ export const addStudent = async (req, res) => {
         .json({ success: false, message: "User not authenticated" });
     }
 
-    const { email, phoneNumber, matricNo, departmentName, name } = req.body;
+    const studentsData = req.body; // Assume studentsData is an array of student objects
 
-    // Check if user or student already exists
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    const existingStudent = await prisma.student.findUnique({
-      where: { matricNo },
-    });
-
-    if (existingUser || existingStudent) {
+    // Validate the incoming data
+    if (!Array.isArray(studentsData) || studentsData.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Student with this email or matric number already exists",
+        message: "Invalid data. Please provide an array of student objects.",
       });
     }
 
-    // Create user with a random password (or hashed matric number)
-    // const hashedPassword = await bcrypt.hash(matricNo, 10);
-    const hashedPassword = "11223344"; // Use a default password for now
+    // Create an array of operations to perform in a single transaction
+    const operations = studentsData.map((student) => {
+      const { email, phoneNumber, matricNo, departmentName, name } = student;
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        role: "STUDENT",
-      },
+      return prisma.user.create({
+        data: {
+          email,
+          password: "11223344", // Default password
+          role: "STUDENT",
+        },
+      }).then((user) => {
+        return prisma.student.create({
+          data: {
+            userId: user.id,
+            matricNo,
+            name,
+            phoneNumber,
+            departmentName,
+          },
+        });
+      });
     });
 
-    // Create student and link to user
-    const student = await prisma.student.create({
-      data: {
-        userId: user.id,
-        matricNo,
-        name,
-        phoneNumber,
-        departmentName,
-      },
-      include: {
-        user: true,
-        department: true,
-      },
-    });
+    // Perform all the operations in a single transaction
+    const result = await prisma.$transaction(operations);
 
     res.status(201).json({
       success: true,
-      message: "Student added successfully",
-      data: student,
-      // data: {
-      //   id: student.id,
-      //   name: student.name,
-      //   matricNo: student.matricNo,
-      //   department: student.department.name,
-      //   email: student.user.email,
-      // },
+      message: "Students added successfully",
+      data: result, // Array of created students
     });
   } catch (error) {
-    console.error("Error adding student:", error);
+    console.error("Error adding students:", error);
     res.status(500).json({ success: false, message: "Server error", error });
   }
 };

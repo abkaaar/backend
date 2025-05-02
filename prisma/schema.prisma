@@ -30,6 +30,9 @@ model User {
   student                Student? // Relation for student details
   staff                  Staff? // Relation for staff details
   createdAt              DateTime  @default(now())
+
+  passwordResetToken       String?  
+  passwordResetTokenExpire DateTime? 
 }
 
 model Student {

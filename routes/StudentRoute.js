@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import { 
-    addStudent, 
+    addStudents, 
     deleteStudent, 
     getStudent,
     getStudents,
@@ -10,7 +10,7 @@ import {
 import userVerification from '../middlewares/AuthMiddleware.js';
 
 // student routes
-router.post('/add', userVerification, addStudent);
+router.post('/add', userVerification, addStudents);
 router.get('/students', getStudents);
 router.get('/:id', getStudent);
 router.put('/:id', userVerification, updateStudent);
